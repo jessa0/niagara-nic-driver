@@ -73,25 +73,21 @@ static ssize_t proc_write(struct file *filp, const char __user *buf, size_t coun
 static ssize_t proc_read_supported_cards(struct file *filp, char __user *buf, size_t count, loff_t *offp);
 static ssize_t proc_read_name(struct file *filp, char __user *buf, size_t count, loff_t *offp);
 
-static const struct file_operations proc_fops_ro = {
-	.owner = THIS_MODULE,
-	.read  = proc_read,
+static const struct proc_ops proc_fops_ro = {
+	.proc_read  = proc_read,
 };
 
-static const struct file_operations proc_fops_rw = {
-	.owner = THIS_MODULE,
-	.read  = proc_read,
-	.write = proc_write,
+static const struct proc_ops proc_fops_rw = {
+	.proc_read  = proc_read,
+	.proc_write = proc_write,
 };
 
-static const struct file_operations proc_fops_get_name  = {
-	.owner = THIS_MODULE,
-	.read = proc_read_name,
+static const struct proc_ops proc_fops_get_name  = {
+	.proc_read = proc_read_name,
 };
 
-static const struct file_operations proc_fops_get_cards_list = {
-	.owner = THIS_MODULE,
-	.read = proc_read_supported_cards,
+static const struct proc_ops proc_fops_get_cards_list = {
+	.proc_read = proc_read_supported_cards,
 };
 
 static inline int get_attr_index(const char* attr_name, const attribute_t attributes[], int count)
@@ -154,7 +150,7 @@ static inline const char* get_attr_name(union attr_info attrinfo)
 	}
 }
 
-static inline void create_attribute(attribute_t *attributep, struct proc_dir_entry *parent, const struct file_operations *fops, union attr_info attrinfo)
+static inline void create_attribute(attribute_t *attributep, struct proc_dir_entry *parent, const struct proc_ops *fops, union attr_info attrinfo)
 {
 	proc_create_data(attributep->name, attributep->mode, parent, fops, attrinfo.datap);
 }
