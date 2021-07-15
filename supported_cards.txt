@@ -1,0 +1,41 @@
+# Version 130121
+#The 4-digit "Niagara 22xy" cards are based on the 82546GB (PCI) and
+#82571EB (PCIe) Intel MACs, which uses Intels e1000/e1000e drivers. When "x"
+#is a "6", that means the card has copper interfaces, and when "x" is a "8",
+#that means the card has fiber interfaces. The "y" part is a bit tricky, so
+#I'll just provide a list of what Niagara 22xy cards we have and describe
+#what they are
+N2264	0x8086	0x105F	0x1FC1	0x38	4	MAC_82571EB|F_COPPER
+N2264L	0x8086	0x105E	0x1FC1	0x50	4	MAC_82571EB|F_COPPER
+N2265	0x8086	0x105E	0x1FC1	0x39	2	MAC_82571EB|F_COPPER
+N2266	0x8086	0x105E	0x1FC1	0x52	6	MAC_82571EB|F_COPPER
+N2284	0x8086	0x105F	0x1FC1	0x51	4	MAC_82571EB|F_FIBER
+N2285	0x8086	0x105F	0x1FC1	0x44	2	MAC_82571EB|F_FIBER
+N2282	0x8086	0x107A	0x1FC1	0x36	2	MAC_82546GB|F_FIBER
+N2261E	0x8086	0x1079	0x1FC1	0x27	2	MAC_82546GB|F_COPPER
+
+#The 5-digit "Niagara z22xy" cards are based on different Intel MACs.
+#When "z" is a "3", that means the card is based on the Intel 82576EB MAC
+#(igb driver). When "z" is a "4", that means the card is based on the Intel
+#82580EB MAC (igb driver). The "x" still has the same meaning as the 4-digit
+#card number. The "y" does mean the number of ports. When "y" is a "5",
+#that means the card has 2 ports (1 channel). When "y" is a "4", that means
+#the card has 4 ports (2 channels). When "y" is a "6", that means the card
+#has 6 ports (3 channels)
+N32264	0x8086	0x10C9	0x1FC1	0x8E	4	MAC_82576EB|F_COPPER
+N32265	0x8086	0x10C9	0x8086	0x8A	2	MAC_82576EB|F_COPPER
+N32266	0x8086	0x10C9	0x8086	0x8B	6	MAC_82576EB|F_COPPER
+N32266	0x8086	0x10C9	0x1FC1	0x8B	6	MAC_82576EB|F_COPPER
+N32284	0x8086	0x10E6	0x1FC1	0xB6	4	MAC_82576EB|F_FIBER|F_PCTL_SWAPPED
+N32285	0x8086	0x10E6	0x1FC1	0x92	2	MAC_82576EB|F_FIBER|F_PCTL_SWAPPED
+N42264	0x8086	0x150E	0x1FC1	0xB5	4	MAC_82580EB|F_COPPER
+N42264-1620     0x8086  0x150e  0x1FC1  0xa8    4       MAC_82580EB|F_COPPER
+N32265	0x8086	0x10c9	0x1fc1	0x8a	2	MAC_82576EB|F_COPPER
+N52284	0x8086	0x1523	0x1FC1	0x129	4	MAC_I350|F_FIBER
+N52285	0x8086	0x1523	0x1FC1	0x12A	2	MAC_I350|F_FIBER
+N52264	0x8086	0x1521	0x1FC1	0x12D	4	MAC_I350|F_COPPER
+
+# 10G cards, IXGBE driver
+N32710	0x8086	0x10FB	0x1FC1	0x8084	2	MAC_82599ES|F_FIBER //MMD_0x1e
+N32710	0x8086	0x10FB	0x1FC1	0x84	2	MAC_82599ES|F_FIBER //MMD_0x1
+N32710-TX 0x8086 0x1528 0x1FC1	0xfe	2	MAC_X540|F_COPPER

@@ -1,0 +1,3 @@
+change flags to features
+supported_cards should be directory in /sys and /proc
+firmware upgrade, not just recognize

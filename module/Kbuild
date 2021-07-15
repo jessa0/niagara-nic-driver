@@ -1,0 +1,9 @@
+obj-m:= niagara.o
+niagara-y:=main.o
+niagara-y+= procfs.o sysfs.o
+niagara-y+= cpld_sdp.o cpld_esdp.o cpld_mdio.o cpld_flash.o
+niagara-y+= cpld_validate.o cpld_lock.o
+niagara-y+= api.o cpu.o spi.o lfd.o port.o
+niagara-y+= niagara_ixgbe.o
+niagara-y+= cpld_dev.o
+ccflags-y:=-I$(src)/../include

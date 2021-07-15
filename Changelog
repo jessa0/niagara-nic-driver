@@ -1,0 +1,82 @@
+Version 0.8b8 20162511
+	- resolved sporadical module lock on exit issue
+	- resolved LFD thread lock on port state update issue
+
+Version 0.8b7 20160408
+	- resolved issues with port status mismatch between segment interfaces for N32285 and N32285
+	- resolved LFD functionality issues for N32284 and N32285
+
+Version 0.8b6 20160607
+	- bugfixes for N32285: LFD issue (#2690) and link status mismatch (#2691)
+
+Version 0.8b5 20160604
+	- resolved issue with swapped segment registers for N42264 and N32264
+	- resolved few minor issues with sysfs attributes permissions and README
+
+Version 0.8 b4 20150712
+	- resolved module compillation issue for Linux kernels 3.18+
+
+Version 0.8 b3 20141812
+	- fixed LFD functionality for some types of NICS with swapped SPD/ESPD 
+	  control registers (N32265 for example)
+
+Version 0.8 b2 20141908
+	- fixed set MTU size isue for i350 based NICs
+	- fixed very rare system hangs caused by universal driver
+	- fixed incorrect port status information in some modes for fiber NICs
+
+Version 0.8 b1 20142807
+	- fixed deadlock in 'kick' functionality for MDIO based NICs
+	- fixed LFD functionality for FIBER NICs in default mode
+	- fixed 'mismatched interfaces' issue for some NICs
+	- added support for i350 based NICs (N52284/N52285)
+
+Version 0.7 b4 20140706
+	- fixed LFD functionality for fiber NICs
+	- added ability to enable/disable CPLD debug mode
+		- access to CPLD registers via sysfs
+		- communicate with local CPU via sysfs
+	- added ability to comunicate to local CPU using niagara_util
+
+Version 0.7 b3 20140606
+	- added ability to set power off mode (bypass or regular)
+
+Version 0.7 b2 20143001
+	- support for new procfs kernel APIs (kernel 3.10 and upper)
+	- workaround for ethernet controller resets caused by ixgbe driver (N32710-TX)
+
+Version 0.7 b1 20131105
+	- port status obtained from net_device abstraction
+	- LFD for N32710-TX implemented (no access to PHY)
+
+Version 0.6 b2 20131012
+	- kernel API implemented
+	- example API files provided
+	
+Version 0.6 b1 20130607
+	- fix kick() if card is busy, not poll but retry later
+
+Version 0.5 b1 20130410
+	- verbose output while insmod
+	- prohibition of unloading Intel driver
+	- card binary attributes cpld_mem and cpu_mem
+
+Version 0.3.b1 20130303
+	- FLASH cards fully supported (N2282, N2261E)
+	- kick(): unneeded locking removed
+
+Version 0.2.b1 20130103
+	- sysfs implemented in full volume
+	- API changed (from structures to attributes)
+	- sysfs used as main wrapper
+	- ioctl access removed
+
+Version 0.1.b2 20121230
+	- README added
+	- versioning support, check the same driver/utility version
+	- /proc/niagara/version added
+	- utility: verbose output for CURRENT_MODE 0x70
+	- uncrustify sources
+	- api: TIMEOUT 00 prohibited
+	- /proc/niagara/supported_cards added
+	- niagara_util -l 

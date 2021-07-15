@@ -1,0 +1,256 @@
+
+This document describes major functions of the driver (universal-driver-8b8)
+deployed in Niagara Bypass NIC cards with either copper or fiber interfaces.
+
+The Niagara Bypass NIC card can monitor its host workstation and automatically
+switch Ether interface to BYPASS when the watchdog heartbeat from the host is
+absent.
+  
+As of writing this document, the driver version is 8b8. The driver is
+written under GPL license.
+
+1. Software requirements:
+	- Linux version 2.6.27 or higher
+	- for compilation: installed gnu make,gcc, libc-dev,
+		linux-kernel-headers,awk
+	- for launch: installed udev (to manage device /dev/niagara
+		mode and permission)
+	- Ununtu suggested
+2. Supported cards
+	- cards with USB or ETH control interfaces are not supported, only
+		PCI/PCIe
+	- any fiber/copper Niagara NIC with Intel MAC, which supports
+		"software defineable pin side interface". For example, N32264
+		or N42264.
+
+3. Quick start
+3.1. obtain universal-driver-8b8, unpack, compile
+	$ make
+		expected no error/warning messages, driver modulo and utility
+		will be built
+	$ sudo make install
+		niagara_util will be placed in /usr/local/bin
+	$ make insmod
+		modulo launched. You can check dmesg or /var/log/kern.log
+3.2. Play with niagara_util.
+List of detected devices:
+	$ niagara_util -Sv
+	0       N32264 ( 4 ports COPPER 1G IGB SDP )
+Check for all options. Call without arguments will show usage.
+If card or segment is not set - it means all of them:
+	$ niagara_util 
+	niagara_util [OPTIONS] [card[.segment]]
+        	-S      Count cards
+        	-i      Card/segment information
+	Segment mode
+        	-d<0..5>Set Default mode
+                        	HeartBeatPresent NoHeartBeat
+                Copper modes:
+                        -d0       Active          Bypass
+                        -d1       Bypass          Active
+                        -d2       Active          Active
+                        -d3       Active          NoLink
+                        -d4       Bypass          Bypass
+                        -d5       Nolink          Nolink
+                Fiber modes:
+                        -d0       Active          Active
+                        -d1       Bypass          Bypass
+                        -d2       Active          Bypass
+                        -d3       Bypass          Active
+                        -d4       Active          NoLink
+                        -d5       NoLink          NoLink
+                -c<0..5>Set Current mode
+                -cd     Set Current mode to Default
+	Segment watchdog
+        	-t<1..ff>Set timeout (in 0.1 sec)
+        	-k      Kick segment
+        	-a      Add heartbeat
+        	-r      Remove heartbeat
+        	-h<1..ff>Heartbeat period (in 0.1 sec)
+	Link Fault Detection
+        	-Q      Enable LFD
+        	-q      Disable LFD
+	Power Off mode
+		-P	Bybass
+		-p	Regular
+	Read/write to register/memory on local CPU (in cpld_debug mode only!)
+	-g <a>	a is 1-byte long hexadecimal number -
+		address on local CPU to read
+	-s <ad>	ad is 2-byte long hexadecimal number -
+		first byte is address, second - data to write
+	Common options
+        	-v      verbose
+	EVERYTHING IS HEXADECIMAL EVERYWHERE!
+3.3. Get information about the first segment of the first card.
+	$ niagara_util -i 0.0
+	0.0     TIMEOUT:10
+	0.0     RELAY:01        BYPASS
+	0.0     CURRENT MODE:70
+	0.0     DEFAULT MODE:00
+	0.0     HEARTBEAT:00
+     meaning of fields are described later, now You can see, that card is in
+     	BYPASS mode. 
+     Also You can get information about all segments of the first card:
+	$ niagara_util -i 0
+     Or about all cards:
+        $ niagara_util -i
+3.4. Switching on monitoring. With this call we are asking kernel periodically
+"kicks" segment with keep-alive signals.
+	$ niagara_util -a 0.0
+While receiving this kicks, named heartbeat, card thinks, that everything is
+OK and switched to ACTIVE mode:
+	$ niagara_util -i 0.0
+	0.0     TIMEOUT:10
+	0.0     RELAY:02        ACTIVE
+	0.0     CURRENT MODE:70
+	0.0     DEFAULT MODE:00
+	0.0     HEARTBEAT:01    PERIOD:0F
+We can combine switches in one line, they have internal priority, -i is
+executed last:
+	$ niagara_util -i 0.0 -a
+3.5. Playing with /proc filesystem. All parameters are represented there,
+most of them can be changed:
+	$ ls -R /proc/niagara/
+	/proc/niagara/:
+	0
+	/proc/niagara/0:
+	0  1  cpld_id  firmware_rev  flags  name  num_ports  oem_id
+		product_id  product_rev  secondary_firmware_rev
+	/proc/niagara/0/0:
+	current_mode  default_mode  heartbeat  heartbeat_period
+		relay_status  timeout_scaler
+	/proc/niagara/0/1:
+	current_mode  default_mode  heartbeat  heartbeat_period  relay_status
+		timeout_scaler
+Let's check heartbeat status of segment 0.0:	
+	$ cat /proc/niagara/0/0/heartbeat
+	01
+Let's stop it:
+	$ echo 0 > /proc/niagara/0/0/heartbeat
+	$ cat /proc/niagara/0/0/heartbeat
+	00
+Let's see segment status with utility. It's switched to BYPASS - our watchdog
+works:
+	$$ niagara_util -i 0.0
+	0.0     TIMEOUT:10
+	0.0     RELAY:01        BYPASS
+	0.0     CURRENT MODE:70
+	0.0     DEFAULT MODE:00
+	0.0     HEARTBEAT:00
+The same information can be seen with procfs:
+	$ cat /proc/niagara/0/0/relay_status 
+	01
+
+4. Base terms
+We have only three types of objects: cards,segments and ports.
+Card is physical PCB, inserted into PCI. It consists of segemnts, one or more.
+Each segment has exactly two ports.
+Each object has attributes, which can be readonly or write-capable.
+Segments are totally logically  independend, despite placed in one PCB.
+Internally all segments in one PCB are served by one CPU, that's why driver
+(internally) uses locking technique to avoid concurrent access to CPU.
+
+5. Attribute meaning
+5.1 Each card has 11 attributes:
+	cpld_id (RO)
+		two hexa-digit displays board revision and CPLD program
+		version. You can ignore it ;)
+	firmware_rev (RO)
+		self-identification register of card's CPU
+	flags (RO)
+		this sophistical bits explain hardware features of this card.
+		bit descriptions can be found in include/niagara_flags.h
+	name (RO)
+		commercial name of this card
+	num_ports (RO)
+		number of ports (not segments!)
+	oem_id (RO)
+		constant value, reported by CPU
+		Should be 26 for Niagara products.
+	product_id (RO)
+		Manufacturer's number of this device.
+		List of possible ID's can be found outside this document
+	product_rev (RO)
+		product variant
+	secondary_firmware_rev (RO)
+		reserved identification byte, 01 for all current products
+	avr_sig (RO)
+		AVR CPU signature. Should be 1E9307 for ATMega8
+5.2. Each segment has 8 attributes:
+	current_mode (rw)
+		this byte describes what segment shell to do in different
+		situations.
+		There are preset six different scenarios wor copper card,
+		please see list in  niagara_util usage.
+		Special value 70 (default) means redirection, mode will be
+		taken from default byte.
+		Note, that current_mode will NOT kept after device reboot.
+	default_mode (rw)
+		value can be 0..5, the meaning is same as above.
+		This byte is kept while reboot.
+	heartbeat (rw)
+		can be 00 - no heartbeat or 01 - heartbeat active.
+	heartbeat_period (rw)
+		in 0.1 secs
+	relay status (ro)
+		01 BYPASS
+		02 ACTIVE
+		03 NOLINK
+	timeout_scaler (rw)
+		in 0.1 secs, this value is an instruction for internal card's
+		watchdog.
+		It's recommended have timeout_scaler about 1.5 times greater
+		then heartbit_period
+	LFD (Link Fault Detection) (rw)
+		LFD is when one port is down, its companion port will be
+		brought down.  However a copper NIC presents its interface
+		status slightly different than a fiber NIC when the LFD is
+		turned on.  This difference can be observed in port LEDS or
+		using niagara_util.  A copper NIC would turn off both port
+		LEDs and display both port status as “00”.  The fiber NIC
+		would only turn off the LED on the defunct port, display its
+		port status as “00” and leave its companion port display
+		alone. Use “ethtool ethXX” at the CLI to verify interface
+		status is recommended in case like this.
+       Fail/Power off Mode (rw)
+		Power off mode dictates if the NIC will fail open or fail
+		close. Fail open (bypass) will allow traffic to flow when
+		power is lost or there is a software failure. Fail close
+		(regular) will not allow traffic to flow when power is lost
+		or there is a software failure. This applies only to copper
+		NICs. This mode does not apply to Fiber NICs.
+
+5.3 Port attributes is not implemented in this version
+6. Software parts
+   Internally driver consists of:
+	- cpld layer
+		low-level functions, which deals with Intel MAC chip.
+		The main tasks - just send or recieve bits to card's CPLD.
+		In 0.1 version of driver only one type of access implemented,
+		SDP.
+	- cpu layer
+		this layer allows send/recieve bytes to card's CPU.
+		locking technique is used here.
+	- pci enumeration
+		this part of software knows "our" pci devices and performs
+		their initialisation.
+		list of devices can be found in human-readable file
+		"supported_cards.txt".
+		Implementation in version 0.1 are based on pci_scan approch.
+		Full-featured "Linux Device Model" is planned in Version 0.2
+	- kernel_api
+		This is a set of procedures for manipulation with attributes.
+		It can be called from any part of kernel, even from
+		third-party driver
+	- procfs wrapper
+		when someone read or write files in /proc/niagara, this
+		wrapper translate it to kernel_api calls
+	- sysfs wrapper
+		the same with /sys/devices/virtual/niagara, in version 0.1.
+		implemented only for card attributes
+	- user_api
+		user-space library for manipulation with attributes
+	- niagara_test
+		simple utility, which just calls user_api library and shows
+		results
+7. Dixi.
