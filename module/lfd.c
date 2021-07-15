@@ -114,6 +114,7 @@ static void lfd_update_segment(int card, int segment)
 			lfd_state[card][segment] = 1;
 			break;
 	}
+          // fall through
 	case 1:
 		if (!port0 && port1) {
 			lfd_state[card][segment] = 2;
