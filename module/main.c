@@ -56,10 +56,15 @@ static int __init niagara_init(void)
 					cards[maxcard].net_dev[port_in_card] = net_dev;
 					break;
 				}
+
+				/*
+				 * A device driver for DPDK is not netdev. So net_dev[] is null.
+				 *
 				if (cards[maxcard].net_dev[port_in_card] == NULL) {
 					MSG_TTY("Cannot find network device, is Intel driver loaded?");
 					return -ENXIO;
 				}
+				*/
 
 				if (++port_in_card == pci_cards[pci].num_ports) { // card is finished
 					cards[maxcard].flags = pci_cards[pci].flags;
@@ -89,7 +94,10 @@ static int __init niagara_init(void)
 						continue;
 					} else {
 						int i = 0; for (; i < port_in_card; i++)
-							MSG_TTY(" %d.%d port%d %s", maxcard, i / 2, i % 2, cards[maxcard].net_dev[i]->name);
+							if (cards[maxcard].net_dev[i] == NULL)
+								MSG_TTY(" %d.%d port%d", maxcard, i / 2, i % 2);
+							else
+								MSG_TTY(" %d.%d port%d %s", maxcard, i / 2, i % 2, cards[maxcard].net_dev[i]->name);
 					}
 
 					cards[maxcard].cpld_id = cpld_read(maxcard, ID_R);

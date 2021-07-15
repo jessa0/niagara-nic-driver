@@ -100,7 +100,7 @@ static ssize_t port_name_show(struct kobject *kobj, struct kobj_attribute *attr,
 	int segment = atoi(kobj->name);
 	int port = 0;
 	if (!strncmp(attr->attr.name, "port1_name", 12)) port = 1;
-	return scnprintf(buf, PAGE_SIZE, "%s\n", cards[card].net_dev[2*segment + port]->name);
+	return scnprintf(buf, PAGE_SIZE, "dev%d\n", 4*card+2*segment+port);
 }
 
 #define NIAGARA_SEGMENT_ATTRIBUTE(_name, _mode)	\

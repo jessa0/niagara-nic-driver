@@ -140,7 +140,8 @@ static int cpld_mdio_write(int hw, uint8_t addr, uint8_t data)
 }
 static int cpld_mdio_kick(int card, int segment)
 {
-	cpld_mdio_write(card, CSR, 0x10 << segment);
+	int ret = 0;
+	ret = cpld_mdio_write(card, CSR, 0x10 << segment);
 	return 0;
 }
 
