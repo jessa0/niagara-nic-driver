@@ -3,7 +3,6 @@
 #include "cpld.h"
 
 static volatile long unsigned int heartbeat_active[MAX_CARD];
-static struct timer_list heartbeat       [MAX_CARD][MAX_PORT_PER_CARD / 2];
 static unsigned char heartbeat_period[MAX_CARD][MAX_PORT_PER_CARD / 2];
 
 static unsigned char rly_sta_addr[] = {
@@ -36,18 +35,6 @@ static unsigned char power_off_mode[] = {
 	POWER_OFF_MODE_REG_C,
 	POWER_OFF_MODE_REG_D,
 };
-
-static void timer_proc(unsigned long data)
-{
-	int card = data / MAX_PORT_PER_CARD;
-	int segment = data % MAX_PORT_PER_CARD;
-
-	if (heartbeat_period[card][segment] == 0) heartbeat_period[card][segment] = DEFAULT_HEARTBEAT_PERIOD;
-	if (cpld_kick(card, segment))
-		mod_timer(&heartbeat[card][segment], jiffies + 1);
-	else
-		mod_timer(&heartbeat[card][segment], jiffies + heartbeat_period[card][segment] * HZ / 10);
-}
 
 // ATTRIBUTES STUFF
 //version
@@ -144,24 +131,7 @@ static int get_heartbeat(int card, int segment, unsigned *value)
 }
 static int set_heartbeat(int card, int segment, unsigned value)
 {
-	struct timer_list *timer = &heartbeat[card][segment];
-
-	switch (value) {
-	case 1:
-		if (test_and_set_bit(segment, heartbeat_active + card)) break;
-		init_timer(timer);
-		timer->expires = jiffies + 1;
-		timer->function = timer_proc;
-		timer->data = (card * MAX_PORT_PER_CARD) + segment;
-		add_timer(timer);
-		break;
-	case 0:
-		if (!test_and_clear_bit(segment, heartbeat_active + card)) break;
-		del_timer(timer);
-		break;
-	default: return -EINVAL;
-	}
-	return 0;
+  return -ENOTSUPP;
 }
 //heartbeat_period
 static int get_heartbeat_period(int card, int segment, unsigned *value)
